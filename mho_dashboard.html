@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MHO — Health</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <a class="brand" href="mho_dashboard.html">
+      <img src="assets/logo.png" alt="Logo" class="logo" />
+      <span class="brand-name">MHO</span>
+    </a>
+    <nav>
+      <a href="#" id="mhoDownloadCsv" class="btn secondary">Download CSV</a>
+      <a href="#" id="mhoDownloadXls" class="btn secondary">Download XLS</a>
+      <a href="login.html" class="btn danger">Logout</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Reports</h2>
+      <div class="row">
+        <div class="col card canvas-card">
+          <h3>Vaccine Completion</h3>
+          <p class="muted">Children with complete vs incomplete vaccines</p>
+          <canvas id="pieChart" width="720" height="340"></canvas>
+        </div>
+        <div class="col card canvas-card">
+          <h3>Vaccines Given</h3>
+          <p class="muted">Counts by vaccine type</p>
+          <canvas id="barChart" width="720" height="340"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="card mt-6">
+      <h2>All Children (All Barangays & Sitios)</h2>
+      <div class="table-wrap">
+        <table id="mhoTable" class="table">
+          <thead><tr>
+            <th>Child Name</th><th>Age</th><th>Parent Name</th><th>Barangay</th><th>Sitio</th>
+            <th>BCG</th><th>OPV</th><th>Pentavalent</th><th>Measles</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p id="mhoEmpty" class="muted mt-2" style="display:none;">No records yet.</p>
+    </section>
+  </main>
+
+  <footer class="footer"><div class="container"><small>&copy; <span id="y"></span> HealthPro</small></div></footer>
+  <script src="js/app.js"></script>
+  <script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+</body>
+</html>

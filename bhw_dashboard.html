@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BHW Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="navbar">
+    <a href="bhw_dashboard.html" class="brand">
+      <img src="assets/logo.png" alt="Logo" class="logo">
+      <span class="brand-name">HealthPro</span>
+    </a>
+    <nav>
+      <a href="bhw_dashboard.html" class="active">Dashboard</a>
+      <a href="index.html">Logout</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Dashboard header with buttons on right -->
+    <div class="dashboard-header">
+      <h2>BHW Dashboard</h2>
+      <div class="dashboard-actions">
+        <button class="btn" onclick="addNewChild()">+ Add Child</button>
+        <button class="btn" onclick="saveTableEdits()">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- Upload -->
+    <div class="mt-4">
+      <input type="file" id="fileInput" class="input" accept=".csv,.xlsx,.xls">
+    </div>
+
+    <!-- Table container -->
+    <div class="table-container">
+      <table class="table" id="childrenTable">
+        <thead>
+          <tr>
+            <th>Child Name</th>
+            <th>Age</th>
+            <th>Parent</th>
+            <th>Barangay</th>
+            <th>Sitio</th>
+            <th>BCG</th>
+            <th>OPV</th>
+            <th>Pentavalent</th>
+            <th>Measles</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Download -->
+    <div class="mt-4">
+      <label for="reportType">Download as:</label>
+      <select id="reportType" class="input mt-2">
+        <option value="csv">CSV</option>
+        <option value="xlsx">Excel (.xlsx)</option>
+      </select>
+      <button class="btn mt-3" onclick="downloadReport()">Download Report</button>
+    </div>
+  </main>
+
+  <script>
+    let childrenData = JSON.parse(localStorage.getItem("childrenData") || "[]");
+    renderTable();
+
+    document.getElementById('fileInput').addEventListener('change', handleFile);
+
+    function handleFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+
+      if (file.name.endsWith(".csv")) {
+        reader.onload = e => { 
+          childrenData = parseCSV(e.target.result);
+          saveAndRender();
+        };
+        reader.readAsText(file);
+      } else {
+        reader.onload = e => {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+          childrenData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+          saveAndRender();
+        };
+        reader.readAsArrayBuffer(file);
+      }
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split("\n");
+      const headers = lines[0].split(",").map(h => h.trim());
+      return lines.slice(1).map(line => {
+        const values = line.split(",");
+        return headers.reduce((obj, header, i) => {
+          obj[header] = values[i] ? values[i].trim() : "";
+          return obj;
+        }, {});
+      });
+    }
+
+    function renderTable() {
+      const tbody = document.querySelector("#childrenTable tbody");
+      tbody.innerHTML = "";
+      childrenData.forEach((row, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row["Child Name"] || ""}</td>
+          <td>${row["Age"] || ""}</td>
+          <td>${row["Parent Name"] || ""}</td>
+          <td>${row["Barangay"] || ""}</td>
+          <td>${row["Sitio"] || ""}</td>
+          <td><span class="badge ${row["BCG"] === "Accepted" ? "accepted" : "needed"}">${row["BCG"] || "Needed"}</span></td>
+          <td><span class="badge ${row["OPV"] === "Accepted" ? "accepted" : "needed"}">${row["OPV"] || "Needed"}</span></td>
+          <td><span class="badge ${row["Pentavalent"] === "Accepted" ? "accepted" : "needed"}">${row["Pentavalent"] || "Needed"}</span></td>
+          <td><span class="badge ${row["Measles"] === "Accepted" ? "accepted" : "needed"}">${row["Measles"] || "Needed"}</span></td>
+          <td>
+            <button class="action-btn edit-btn" onclick="editRow(${index})">Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteRow(${index})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function addNewChild() {
+      childrenData.push({
+        "Child Name": "",
+        "Age": "",
+        "Parent Name": "",
+        "Barangay": "",
+        "Sitio": "",
+        "BCG": "Needed",
+        "OPV": "Needed",
+        "Pentavalent": "Needed",
+        "Measles": "Needed"
+      });
+      renderTable();
+    }
+
+    function saveTableEdits() {
+      const tbody = document.querySelector("#childrenTable tbody");
+      const rows = tbody.querySelectorAll("tr");
+      childrenData = Array.from(rows).map(tr => {
+        const cells = tr.querySelectorAll("td");
+        return {
+          "Child Name": cells[0].innerText.trim(),
+          "Age": cells[1].innerText.trim(),
+          "Parent Name": cells[2].innerText.trim(),
+          "Barangay": cells[3].innerText.trim(),
+          "Sitio": cells[4].innerText.trim(),
+          "BCG": cells[5].innerText.trim(),
+          "OPV": cells[6].innerText.trim(),
+          "Pentavalent": cells[7].innerText.trim(),
+          "Measles": cells[8].innerText.trim()
+        };
+      });
+      localStorage.setItem("childrenData", JSON.stringify(childrenData));
+      renderTable();
+      alert("Changes saved!");
+    }
+
+    function editRow(index) {
+      const tbody = document.querySelector("#childrenTable tbody");
+      const row = tbody.children[index];
+      row.querySelectorAll("td").forEach((td, i) => {
+        if (i < 9) td.contentEditable = true;
+      });
+    }
+
+    function deleteRow(index) {
+      if(confirm("Are you sure you want to delete this child?")){
+        childrenData.splice(index, 1);
+        saveAndRender();
+      }
+    }
+
+    function saveAndRender() {
+      localStorage.setItem("childrenData", JSON.stringify(childrenData));
+      renderTable();
+    }
+
+    function downloadReport() {
+      if(childrenData.length === 0) { alert("No data to download!"); return; }
+      const type = document.getElementById("reportType").value;
+      if(type === "csv") {
+        let csv = Object.keys(childrenData[0]).join(",") + "\n";
+        childrenData.forEach(row => csv += Object.values(row).join(",") + "\n");
+        const blob = new Blob([csv], { type:"text/csv" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "children_report.csv";
+        link.click();
+      } else {
+        const ws = XLSX.utils.json_to_sheet(childrenData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Report");
+        XLSX.writeFile(wb, "children_report.xlsx");
+      }
+    }
+  </script>
+</body>
+</html>

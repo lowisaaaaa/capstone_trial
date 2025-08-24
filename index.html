@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Health</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <a class="brand" href="index.html">
+      <img src="assets/logo.png" alt="Logo" class="logo" />
+      <span class="brand-name">HealthPro</span>
+    </a>
+  </header>
+
+  <main class="container center">
+    <img src="assets/logo.png" alt="Logo" class="hero-logo" />
+    <h1>Welcome to Health Monitoring Management System</h1>
+    <p class="muted">Community health monitoring & vaccine tracking across barangays and sitios of the Municipality of .</p>
+    <a href="login.html" class="btn">Get Started</a>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <small>&copy; <span id="y"></span> HealthPro</small>
+    </div>
+  </footer>
+  <script>
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
